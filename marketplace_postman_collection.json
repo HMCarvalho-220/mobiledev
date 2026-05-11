@@ -1,0 +1,447 @@
+{
+  "info": {
+    "name": "Marketplace LDAMD – Sprint 1",
+    "_postman_id": "ldamd-marketplace-sprint1-2026",
+    "description": "Coleção de testes REST para o Marketplace LDAMD – PUC Minas.\nBase URL: http://localhost:5000\n\nEndpoints:\n- Health check\n- Usuários (POST, GET list, GET by ID)\n- Produtos (POST, GET list, GET by ID, PATCH)\n- Pedidos (POST, GET list, GET by ID, PATCH status)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000", "type": "string" },
+    { "key": "seller_id", "value": "1", "type": "string" },
+    { "key": "buyer_id",  "value": "2", "type": "string" },
+    { "key": "product_id","value": "1", "type": "string" },
+    { "key": "order_id",  "value": "1", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Verifica se o servidor está no ar."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"status\": \"ok\",\n  \"service\": \"Marketplace API v1\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Usuários",
+      "item": [
+        {
+          "name": "POST – Cadastrar vendedor",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana Vendedora\",\n  \"email\": \"ana@shop.com\",\n  \"role\": \"seller\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users"]
+            },
+            "description": "Registra um novo usuário com papel 'seller'."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"status\": \"success\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"Ana Vendedora\",\n    \"email\": \"ana@shop.com\",\n    \"role\": \"seller\",\n    \"created_at\": \"2026-05-11T12:00:00\"\n  }\n}"
+            },
+            {
+              "name": "400 – Email duplicado",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"status\": \"error\",\n  \"message\": \"Email ja cadastrado\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST – Cadastrar comprador",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carlos Comprador\",\n  \"email\": \"carlos@mail.com\",\n  \"role\": \"buyer\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users"]
+            },
+            "description": "Registra um novo usuário com papel 'buyer'."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"status\": \"success\",\n  \"data\": {\n    \"id\": 2,\n    \"name\": \"Carlos Comprador\",\n    \"email\": \"carlos@mail.com\",\n    \"role\": \"buyer\",\n    \"created_at\": \"2026-05-11T12:00:01\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET – Listar usuários",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users"]
+            },
+            "description": "Retorna todos os usuários cadastrados."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"status\": \"success\",\n  \"data\": [\n    { \"id\": 1, \"name\": \"Ana Vendedora\", \"email\": \"ana@shop.com\", \"role\": \"seller\", \"created_at\": \"2026-05-11T12:00:00\" },\n    { \"id\": 2, \"name\": \"Carlos Comprador\", \"email\": \"carlos@mail.com\", \"role\": \"buyer\", \"created_at\": \"2026-05-11T12:00:01\" }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET – Buscar usuário por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/{{seller_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "{{seller_id}}"]
+            },
+            "description": "Retorna um usuário específico pelo seu ID."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"success\",\n  \"data\": { \"id\": 1, \"name\": \"Ana Vendedora\", \"email\": \"ana@shop.com\", \"role\": \"seller\", \"created_at\": \"2026-05-11T12:00:00\" }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"status\": \"error\",\n  \"message\": \"Usuario 99 nao encontrado\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Produtos",
+      "item": [
+        {
+          "name": "POST – Cadastrar produto",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Notebook Dell XPS 13\",\n  \"description\": \"Intel Core i7, 16 GB RAM, 512 GB SSD\",\n  \"price\": 4500.00,\n  \"stock\": 10,\n  \"seller_id\": {{seller_id}}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products"]
+            },
+            "description": "Cria um novo anúncio de produto. Requer seller_id de um usuário com role='seller'."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"status\": \"success\",\n  \"data\": {\n    \"id\": 1,\n    \"title\": \"Notebook Dell XPS 13\",\n    \"description\": \"Intel Core i7, 16 GB RAM, 512 GB SSD\",\n    \"price\": 4500.0,\n    \"stock\": 10,\n    \"status\": \"active\",\n    \"seller_id\": 1,\n    \"seller_name\": \"Ana Vendedora\",\n    \"created_at\": \"2026-05-11T12:01:00\",\n    \"updated_at\": \"2026-05-11T12:01:00\"\n  }\n}"
+            },
+            {
+              "name": "400 – Preço inválido",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"status\": \"error\",\n  \"message\": \"Preco deve ser positivo\"\n}"
+            },
+            {
+              "name": "400 – Usuário não é vendedor",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"status\": \"error\",\n  \"message\": \"Usuario nao e um vendedor\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET – Listar produtos ativos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products"]
+            },
+            "description": "Lista todos os produtos com status='active'. Use ?seller_id=N para filtrar por vendedor."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"success\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"title\": \"Notebook Dell XPS 13\",\n      \"price\": 4500.0,\n      \"stock\": 10,\n      \"status\": \"active\",\n      \"seller_id\": 1,\n      \"seller_name\": \"Ana Vendedora\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET – Listar produtos por vendedor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products?seller_id={{seller_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products"],
+              "query": [{ "key": "seller_id", "value": "{{seller_id}}" }]
+            },
+            "description": "Filtra os produtos de um vendedor específico via query string."
+          },
+          "response": []
+        },
+        {
+          "name": "GET – Buscar produto por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products", "{{product_id}}"]
+            },
+            "description": "Retorna os detalhes completos de um produto pelo seu ID."
+          },
+          "response": [
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"status\": \"error\",\n  \"message\": \"Produto 99 nao encontrado\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "PATCH – Atualizar produto",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 4200.00,\n  \"stock\": 8,\n  \"status\": \"active\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products", "{{product_id}}"]
+            },
+            "description": "Atualiza campos do produto (title, description, price, stock, status). Enviar apenas os campos a alterar."
+          },
+          "response": [
+            {
+              "name": "200 OK – preço atualizado",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"success\",\n  \"data\": { \"id\": 1, \"price\": 4200.0, \"stock\": 8, \"status\": \"active\" }\n}"
+            },
+            {
+              "name": "400 – Status inválido",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"status\": \"error\",\n  \"message\": \"Status invalido: disponivel\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pedidos",
+      "item": [
+        {
+          "name": "POST – Criar pedido",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"buyer_id\": {{buyer_id}},\n  \"product_id\": {{product_id}},\n  \"quantity\": 2\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders"]
+            },
+            "description": "Cria um novo pedido. O estoque do produto é decrementado automaticamente. Se o estoque chegar a 0, o produto muda para 'sold_out'."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"status\": \"success\",\n  \"data\": {\n    \"id\": 1,\n    \"buyer_id\": 2,\n    \"buyer_name\": \"Carlos Comprador\",\n    \"product_id\": 1,\n    \"product_title\": \"Notebook Dell XPS 13\",\n    \"quantity\": 2,\n    \"unit_price\": 4500.0,\n    \"total_price\": 9000.0,\n    \"status\": \"pending\",\n    \"created_at\": \"2026-05-11T12:05:00\",\n    \"updated_at\": \"2026-05-11T12:05:00\"\n  }\n}"
+            },
+            {
+              "name": "400 – Estoque insuficiente",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"status\": \"error\",\n  \"message\": \"Estoque insuficiente. Disponivel: 1\"\n}"
+            },
+            {
+              "name": "400 – Produto indisponível",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"status\": \"error\",\n  \"message\": \"Produto nao disponivel para compra\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET – Listar todos os pedidos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders"]
+            },
+            "description": "Retorna todos os pedidos. Use ?buyer_id=N para filtrar pelos pedidos de um comprador específico."
+          },
+          "response": []
+        },
+        {
+          "name": "GET – Pedidos por comprador",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders?buyer_id={{buyer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders"],
+              "query": [{ "key": "buyer_id", "value": "{{buyer_id}}" }]
+            },
+            "description": "Filtra os pedidos realizados por um comprador específico."
+          },
+          "response": []
+        },
+        {
+          "name": "GET – Buscar pedido por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{order_id}}"]
+            },
+            "description": "Retorna os detalhes completos de um pedido, incluindo nome do comprador e produto."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH – Confirmar pedido (pending → confirmed)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{order_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{order_id}}", "status"]
+            },
+            "description": "Atualiza o status do pedido. Transições válidas:\npending → confirmed | cancelled\nconfirmed → shipped | cancelled\nshipped → delivered\ndelivered → (terminal)\ncancelled → (terminal)"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"success\",\n  \"data\": { \"id\": 1, \"status\": \"confirmed\", \"updated_at\": \"2026-05-11T12:10:00\" }\n}"
+            },
+            {
+              "name": "400 – Transição inválida",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"status\": \"error\",\n  \"message\": \"Transicao invalida: 'confirmed' -> 'delivered'. Permitido: ['shipped', 'cancelled']\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "PATCH – Despachar pedido (confirmed → shipped)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"shipped\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{order_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{order_id}}", "status"]
+            },
+            "description": "Marca o pedido como despachado."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH – Cancelar pedido",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"cancelled\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{order_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{order_id}}", "status"]
+            },
+            "description": "Cancela um pedido (válido em pending ou confirmed)."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -8,10 +8,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(200), unique=True, nullable=False)
-    role = db.Column(db.String(20), nullable=False)  # 'buyer' or 'seller'
+    role = db.Column(db.String(20), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    # Relationships
     products = db.relationship("Product", back_populates="seller", lazy=True)
     orders_as_buyer = db.relationship("Order", foreign_keys="Order.buyer_id",
                                       back_populates="buyer", lazy=True)
@@ -34,7 +33,7 @@ class Product(db.Model):
     description = db.Column(db.Text, nullable=True)
     price = db.Column(db.Float, nullable=False)
     stock = db.Column(db.Integer, nullable=False, default=1)
-    status = db.Column(db.String(20), nullable=False, default="active")  # active | sold_out | inactive
+    status = db.Column(db.String(20), nullable=False, default="active")
     seller_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
@@ -68,7 +67,6 @@ class Order(db.Model):
     unit_price = db.Column(db.Float, nullable=False)
     total_price = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(30), nullable=False, default="pending")
-    # pending | confirmed | shipped | delivered | cancelled
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
                            onupdate=lambda: datetime.now(timezone.utc))

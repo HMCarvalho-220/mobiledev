@@ -1,0 +1,51 @@
+services:
+
+  # ── RabbitMQ ────────────────────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3-management        # imagem oficial com painel web incluso
+    container_name: marketplace-rabbitmq
+    ports:
+      - "5672:5672"                     # porta AMQP (Flask e consumer se conectam aqui)
+      - "15672:15672"                   # painel web: http://localhost:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend Flask ────────────────────────────────────────────────────────────
+  backend:
+    build: ./backend                    # usa o Dockerfile em backend/
+    container_name: marketplace-backend
+    ports:
+      - "5000:5000"
+    environment:
+      RABBITMQ_HOST: rabbitmq           # nome do serviço acima (DNS interno do Docker)
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      DATABASE_URL: sqlite:////app/marketplace.db
+    depends_on:
+      rabbitmq:
+        condition: service_healthy      # só sobe após RabbitMQ estar pronto
+    volumes:
+      - ./backend:/app                  # monta o código local (hot reload em dev)
+
+  # ── Consumer ────────────────────────────────────────────────────────────────
+  consumer:
+    build: ./backend                    # mesma imagem do backend
+    container_name: marketplace-consumer
+    command: python consumer/run_consumer.py
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app

@@ -1,7 +1,4 @@
-// models/product.dart
-//
-// Espelho da tabela 'products' do backend.
-// Converte o JSON que vem da API em um objeto Dart tipado.
+
 
 class Product {
   final int id;
@@ -24,7 +21,6 @@ class Product {
     required this.sellerName,
   });
 
-  // Converte o Map vindo do json.decode() em um Product
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id:          json['id'] as int,

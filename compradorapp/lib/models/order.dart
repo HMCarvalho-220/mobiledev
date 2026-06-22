@@ -1,6 +1,4 @@
-// models/order.dart
-//
-// Espelho da tabela 'orders' do backend.
+
 
 class Order {
   final int id;
@@ -42,7 +40,6 @@ class Order {
     );
   }
 
-  // Label e cor para exibir o status na UI
   String get statusLabel {
     const labels = {
       'pending':   'Aguardando confirmação',
@@ -54,8 +51,6 @@ class Order {
     return labels[status] ?? status;
   }
 
-  // Retorna uma cópia do pedido com status atualizado
-  // (usado pelo polling quando detecta mudança)
   Order copyWith({String? status, DateTime? updatedAt}) {
     return Order(
       id:           id,

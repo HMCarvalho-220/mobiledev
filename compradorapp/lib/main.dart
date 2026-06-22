@@ -1,8 +1,4 @@
-// main.dart
-//
-// Ponto de entrada do app.
-// Começa na LoginScreen — o comprador informa seu ID.
-// Após login, vai para a navegação principal com as 3 telas.
+
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -30,14 +26,12 @@ class MarketplaceBuyerApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF534AB7)),
           useMaterial3: true,
         ),
-        // Começa na tela de login
         home: const LoginScreen(),
       ),
     );
   }
 }
 
-// ── Navegação principal (após login) ─────────────────────────────────────────
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -50,8 +44,8 @@ class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = const [
-    ProductListScreen(),  // Tela 1: listagem de produtos
-    MyOrdersScreen(),     // Tela 2: meus pedidos com polling
+    ProductListScreen(),  
+    MyOrdersScreen(),     
   ];
 
   @override
@@ -76,7 +70,6 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
         ],
       ),
-      // Botão de logout no app bar de cada tela fica aqui
     );
   }
 }

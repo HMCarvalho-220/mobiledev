@@ -1,18 +1,8 @@
-// screens/my_orders_screen.dart
-//
-// TELA 3 — Lista de pedidos do comprador com atualização assíncrona.
-// Exigida pela Sprint 3: "atualização assíncrona de estado".
-//
-// O que faz:
-//   - Lista todos os pedidos do comprador
-//   - Inicia o polling ao entrar na tela (verifica backend a cada 5 segundos)
-//   - Se o vendedor atualizar o status, a tela atualiza automaticamente
-//   - Para o polling ao sair da tela (economia de recursos)
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/order.dart';
 import '../services/order_provider.dart';
+import 'login_screen.dart';
 
 class MyOrdersScreen extends StatefulWidget {
   const MyOrdersScreen({super.key});
@@ -22,113 +12,182 @@ class MyOrdersScreen extends StatefulWidget {
 }
 
 class _MyOrdersScreenState extends State<MyOrdersScreen> {
+  List<Order> _previousOrders = [];
+
   @override
   void initState() {
     super.initState();
-    // Inicia o polling assim que a tela abre
-    // O provider buscará os pedidos imediatamente e depois a cada 5s
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrderProvider>().startPolling();
+      final provider = context.read<OrderProvider>();
+      provider.startPolling();
+      _previousOrders = List.from(provider.orders);
+      provider.addListener(_onProviderChanged);
     });
+  }
+
+  void _onProviderChanged() {
+    if (!mounted) return;
+    
+    final provider = context.read<OrderProvider>();
+    final newOrders = provider.orders;
+
+    for (final newOrder in newOrders) {
+      final oldOrder = _previousOrders.firstWhere(
+        (o) => o.id == newOrder.id,
+        orElse: () => newOrder,
+      );
+
+      if (oldOrder.status != newOrder.status) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Pedido #${newOrder.id} mudou para: ${newOrder.statusLabel}'),
+            backgroundColor: const Color(0xFF0F6E56),
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+    _previousOrders = List.from(newOrders);
   }
 
   @override
   void dispose() {
-    // Para o polling quando o usuário sai da tela
+    context.read<OrderProvider>().removeListener(_onProviderChanged);
     context.read<OrderProvider>().stopPolling();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: const Text(
-          'Meus Pedidos',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color(0xFF534AB7),
-        foregroundColor: Colors.white,
-        actions: [
-          // Indicador visual de que o polling está ativo
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Tooltip(
-              message: 'Atualizando a cada 5 segundos',
-              child: Icon(
-                Icons.sync,
-                color: Colors.white.withOpacity(0.8),
-                size: 20,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F5F5),
+        appBar: AppBar(
+          title: const Text(
+            'Meus Pedidos',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: const Color(0xFF534AB7),
+          foregroundColor: Colors.white,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Tooltip(
+                message: 'Atualizando a cada 5 segundos',
+                child: Icon(
+                  Icons.sync,
+                  color: Colors.white.withOpacity(0.8),
+                  size: 20,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      // Consumer escuta o OrderProvider e reconstrói quando notifyListeners() é chamado
-      body: Consumer<OrderProvider>(
-        builder: (context, provider, _) {
-          if (provider.isLoading && provider.orders.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (provider.error != null && provider.orders.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 12),
-                  const Text('Não foi possível carregar os pedidos.'),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () => provider.fetchOrders(),
-                    child: const Text('Tentar novamente'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (provider.orders.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.shopping_bag_outlined, size: 64, color: Colors.grey),
-                  SizedBox(height: 12),
-                  Text(
-                    'Você ainda não fez nenhum pedido.',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () => provider.fetchOrders(),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: provider.orders.length,
-              itemBuilder: (context, index) {
-                return _OrderCard(order: provider.orders[index]);
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Sair',
+              onPressed: () {
+                context.read<OrderProvider>().logout();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (route) => false,
+                );
               },
             ),
-          );
-        },
+          ],
+          bottom: const TabBar(
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: Colors.white,
+            tabs: [
+              Tab(text: 'Em Andamento'),
+              Tab(text: 'Histórico'),
+            ],
+          ),
+        ),
+        body: Consumer<OrderProvider>(
+          builder: (context, provider, _) {
+            if (provider.isLoading && provider.orders.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (provider.error != null && provider.orders.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                    const SizedBox(height: 12),
+                    const Text('Não foi possível carregar os pedidos.'),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => provider.fetchOrders(),
+                      child: const Text('Tentar novamente'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (provider.orders.isEmpty) {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.shopping_bag_outlined, size: 64, color: Colors.grey),
+                    SizedBox(height: 12),
+                    Text(
+                      'Você ainda não fez nenhum pedido.',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final activeOrders = provider.orders.where((o) =>
+              o.status == 'pending' || o.status == 'confirmed' || o.status == 'shipped'
+            ).toList();
+
+            final historyOrders = provider.orders.where((o) =>
+              o.status == 'delivered' || o.status == 'cancelled'
+            ).toList();
+
+            return TabBarView(
+              children: [
+                RefreshIndicator(
+                  onRefresh: () => provider.fetchOrders(),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: activeOrders.length,
+                    itemBuilder: (context, index) {
+                      return _OrderCard(order: activeOrders[index]);
+                    },
+                  ),
+                ),
+                RefreshIndicator(
+                  onRefresh: () => provider.fetchOrders(),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: historyOrders.length,
+                    itemBuilder: (context, index) {
+                      return _OrderCard(order: historyOrders[index]);
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 }
 
-// ── Card de pedido ────────────────────────────────────────────────────────────
-
 class _OrderCard extends StatelessWidget {
   final Order order;
   const _OrderCard({required this.order});
 
-  // Cor do status para feedback visual ao comprador
   Color _statusColor() {
     switch (order.status) {
       case 'pending':   return Colors.orange;
@@ -164,7 +223,6 @@ class _OrderCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: número do pedido e status
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -204,8 +262,6 @@ class _OrderCard extends StatelessWidget {
               ],
             ),
             const Divider(height: 16),
-
-            // Detalhes do pedido
             Text(
               order.productTitle,
               style: const TextStyle(fontSize: 14),

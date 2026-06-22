@@ -1,14 +1,10 @@
-// screens/product_list_screen.dart
-//
-// TELA 1 — Listagem de produtos disponíveis.
-// Usa o buyerId do OrderProvider para criar o ApiService correto.
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
 import '../services/order_provider.dart';
 import 'product_detail_screen.dart';
+import 'login_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -29,7 +25,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   Future<void> _loadProducts() async {
-    setState(() { _isLoading = true; _error = null; });
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     try {
       final buyerId = context.read<OrderProvider>().buyerId;
       final products = await ApiService(buyerId: buyerId).fetchProducts();
@@ -46,11 +45,26 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: const Text('Marketplace', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Marketplace',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF534AB7),
         foregroundColor: Colors.white,
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadProducts),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadProducts,
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Sair',
+            onPressed: () {
+              context.read<OrderProvider>().logout();
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+            },
+          ),
         ],
       ),
       body: _buildBody(),
@@ -61,16 +75,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
     if (_isLoading) return const Center(child: CircularProgressIndicator());
 
     if (_error != null) {
-      return Center(child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 48, color: Colors.red),
-          const SizedBox(height: 12),
-          Text(_error!, style: const TextStyle(color: Colors.red)),
-          const SizedBox(height: 12),
-          ElevatedButton(onPressed: _loadProducts, child: const Text('Tentar novamente')),
-        ],
-      ));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 12),
+            Text(_error!, style: const TextStyle(color: Colors.red)),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _loadProducts,
+              child: const Text('Tentar novamente'),
+            ),
+          ],
+        ),
+      );
     }
 
     if (_products.isEmpty) {
@@ -82,7 +101,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
       child: ListView.builder(
         padding: const EdgeInsets.all(12),
         itemCount: _products.length,
-        itemBuilder: (context, index) => _ProductCard(product: _products[index]),
+        itemBuilder: (context, index) =>
+            _ProductCard(product: _products[index]),
       ),
     );
   }
@@ -102,14 +122,16 @@ class _ProductCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
+          MaterialPageRoute(
+              builder: (_) => ProductDetailScreen(product: product)),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
-                width: 56, height: 56,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   color: const Color(0xFFEEEDFE),
                   borderRadius: BorderRadius.circular(10),
@@ -122,19 +144,29 @@ class _ProductCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(product.title,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                        maxLines: 2, overflow: TextOverflow.ellipsis),
+                    Text(
+                      product.title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 15),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const SizedBox(height: 4),
-                    Text('Vendido por ${product.sellerName}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                    Text(
+                      'Vendido por ${product.sellerName}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
                     const SizedBox(height: 6),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('R\$ ${product.price.toStringAsFixed(2)}',
-                            style: const TextStyle(fontSize: 16,
-                                fontWeight: FontWeight.bold, color: Color(0xFF0F6E56))),
+                        Text(
+                          'R\$ ${product.price.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F6E56)),
+                        ),
                         _StockBadge(stock: product.stock),
                       ],
                     ),
@@ -164,10 +196,13 @@ class _StockBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: isLow ? Colors.orange : Colors.green),
       ),
-      child: Text('$stock em estoque',
-          style: TextStyle(fontSize: 11,
-              color: isLow ? Colors.orange[800] : Colors.green[800],
-              fontWeight: FontWeight.w500)),
+      child: Text(
+        '$stock em estoque',
+        style: TextStyle(
+            fontSize: 11,
+            color: isLow ? Colors.orange[800] : Colors.green[800],
+            fontWeight: FontWeight.w500),
+      ),
     );
   }
 }

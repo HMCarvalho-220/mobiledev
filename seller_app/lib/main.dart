@@ -1,9 +1,3 @@
-// main.dart — App do Vendedor
-//
-// Ponto de entrada. Começa na tela de login.
-// Após login, navegação com 2 abas:
-//   - Pendentes (com notificação assíncrona)
-//   - Em andamento
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -48,8 +42,8 @@ class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = const [
-    PendingOrdersScreen(),   // Tela 1: pedidos pendentes + notificação
-    ActiveOrdersScreen(),    // Tela 3: pedidos em andamento
+    PendingOrdersScreen(),  
+    ActiveOrdersScreen(),   
   ];
 
   @override
@@ -64,7 +58,6 @@ class _MainNavigationState extends State<MainNavigation> {
         destinations: [
           NavigationDestination(
             icon: Badge(
-              // Badge mostra contagem de pedidos pendentes
               isLabelVisible: provider.pendingOrders.isNotEmpty,
               label: Text('${provider.pendingOrders.length}'),
               child: const Icon(Icons.inbox_outlined),
